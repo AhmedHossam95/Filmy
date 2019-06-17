@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Filmy.Models.Rental>
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1>Welcome To Filmy APP</h1>
+    <p>Manage the customers rentals with simple click!</p>
+    
+
+   
+</div>
+<table id="rentals"class="table table-bordered table-hover table-condensed">
+    <thead>
+        <tr>
+            <td><h4>Customer Name</h4></td>
+            <td><h4>Movie Name</h4></td>
+            <td><h4>Available </h4></td>
+
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+    </table>
+
+    @section scripts
+{
+        <script>
+        $(document).ready(function () {
+
+          var table =   $("#rentals").DataTable({
+                ajax: {
+                    url: "/API/Rentals",
+                    dataSrc:""
+                },
+                columns: [
+                    {
+                        data: "customer.name"
+                       
+                    },
+                    {
+                        data: "movie.name"
+                       
+                    },
+                    {
+                        data: "movie.numberAvailable"
+                        
+                    }
+                ]
+            });
+
+           
+        });
+        </script>
+    }
+
+    

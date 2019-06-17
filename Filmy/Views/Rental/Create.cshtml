@@ -1,0 +1,160 @@
+﻿
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>New Rental </h2>
+
+<form id="rentalForm">
+    <div class="form-group">
+        <label>Customer Name</label>
+        <div class="tt-container">
+            <input type="text" name="customer" required data-rule-validCustomer="true" value="" id="customer" class="form-control" />
+
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Movie Name</label>
+        <div class="tt-container">
+            <input type="text" value="" data-rule-validMovie="true" name="movie" id="movie" class="form-control" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-3">
+            <ul id="movies" class="list-group"></ul>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">ADD RENTAL</button>
+    <button class="btn btn-primary" id="clearButton" type="reset">CLEAR</button>
+
+</form>
+
+
+@section scripts
+
+{ @Scripts.Render("~/bundles/jqueryval")
+
+<script>
+
+
+    $(document).ready(function () {
+        var vm = {
+            movieIds: []
+        };
+
+        var customers = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+
+            remote: {
+                url: '/API/Customers?query=%QUERY',
+                wildcard: '%QUERY'
+            }
+        });
+
+
+        $('#customer').typeahead({
+
+            highlight: true,
+            minLength: 1,
+            hint: false
+
+
+        }, {
+               
+               
+                name: 'customers',
+                display: 'name',
+                source: customers
+            }).on("typeahead:select", function (e, customer) {
+                vm.customerId = customer.id;
+            });
+
+
+
+
+
+
+        var movies = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+
+            remote: {
+                url: '/API/Movies?query=%QUERY',
+                wildcard: '%QUERY'
+            }
+        });
+
+
+        $('#movie').typeahead({
+
+            highlight: true,
+            minLength: 1,
+            hint: false
+
+
+        }, {
+                name: 'movies',
+                display: 'name',
+                source: movies
+            }).on("typeahead:select", function (e, movie) {
+                $("#movies").append("<li class='list-group-item'>" + movie.name + "</li>");
+                $("#movie").typeahead("val", "");
+                vm.movieIds.push(movie.id);
+            });
+
+
+
+        $.validator.addMethod("validCustomer", function () {
+
+            return vm.customerId && vm.customerId !== 0;
+
+        }, "Please Select a valid customer");
+
+        $("#clearButton").on('click', function () {
+
+            $("#movies").empty();
+        });
+
+
+
+        $.validator.addMethod("validMovie", function () {
+
+            return vm.movieIds.length > 0;
+      
+        }, "Please Select at least one movie");
+
+        var validator = $("#rentalForm").validate({
+            submitHandler: function () {
+                $.ajax({
+                    url: "/API/Rentals/CreateNewRentals",
+                    method: "post",
+                    data: vm
+                })
+                    .done(function () {
+                        toastr.success("Rentals successfully recorded.");
+                        $("#customer").typeahead("val", "");
+                        $("#movie").typeahead("val", "");
+                        $("#movies").empty();
+                        vm = { movieIds: [] };
+                        validator.resetForm();
+                    })
+                    .fail(function () {
+                        toastr.error("Something unexpected happened.");
+                    });
+                return false;
+            }
+        });
+
+
+
+    });
+
+      
+        
+     
+</script>
+
+}
